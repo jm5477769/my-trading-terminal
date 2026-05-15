@@ -8,11 +8,17 @@
     <style>
         :root { --bg: #0b0e14; --card: #1e222d; --border: #363c4e; --text: #ffffff; --blue: #2962ff; --green: #00ff88; --red: #ff3b30; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* AUTH SCREEN */
         #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        .auth-card { background: var(--card); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 320px; text-align: center; }
-        .auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white; box-sizing: border-box; }
-        .btn-primary { width: 100%; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+        .auth-card { background: var(--card); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .auth-card h2 { color: var(--blue); margin-bottom: 20px; font-weight: 800; }
+        .auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white; box-sizing: border-box; font-size: 14px; }
+        .btn-primary { width: 100%; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 10px; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
         .btn-secondary { width: 100%; padding: 10px; background: none; color: var(--green); border: 1px solid var(--green); border-radius: 6px; cursor: pointer; font-size: 13px; }
+        
+        /* DASHBOARD */
         .hidden { display: none !important; }
         header { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
         .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; }
@@ -25,20 +31,21 @@
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2 style="color:var(--blue)">AlphaPro</h2>
+        <h2>AlphaPro</h2>
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="password" placeholder="Password">
         <button class="btn-primary" onclick="handleLogin()">Sign In</button>
-        <button class="btn-secondary" onclick="handleSignup()">Create Account</button>
-        <p id="auth-error" style="color: var(--red); font-size: 12px; margin-top: 10px;"></p>
+        <button class="btn-secondary" onclick="handleSignup()">Create New Account</button>
+        <p id="auth-error" style="color: var(--red); font-size: 12px; margin-top: 15px; min-height: 15px;"></p>
     </div>
 </div>
 
 <div id="main-terminal" class="hidden" style="display: flex; flex-direction: column; height: 100vh;">
     <header>
-        <span style="font-weight:800; color:var(--blue)">ALPHAPRO LIVE</span>
-        <button onclick="handleLogout()" style="background:var(--red); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Logout</button>
+        <span style="font-weight:800; color:var(--blue); letter-spacing: 1px;">ALPHAPRO TERMINAL</span>
+        <button onclick="handleLogout()" style="background:var(--red); color:white; border:none; padding:6px 15px; border-radius:4px; cursor:pointer; font-weight:600;">Logout</button>
     </header>
+
     <div class="main-container">
         <div class="sidebar">
             <div class="panel" style="height: 250px;"><div id="gauge_widget" style="height:100%;"></div></div>
@@ -52,12 +59,12 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // CLEAN CONFIGURATION
+    // Verified Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyBumFQ72F8TAsGowOfnzNeUMA336bYBDjU",
         authDomain: "alphapro-auth.firebaseapp.com",
         projectId: "alphapro-auth",
-        storageBucket: "alphapro-auth.appspot.com",
+        storageBucket: "alphapro-auth.firebasestorage.app",
         messagingSenderId: "161375056263",
         appId: "1:161375056263:web:1f9cd16ceb561bf630e322",
         measurementId: "G-LKZLQPG4BQ"
@@ -66,55 +73,15 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // Monitor Auth State
     onAuthStateChanged(auth, (user) => {
+        const overlay = document.getElementById('auth-overlay');
+        const terminal = document.getElementById('main-terminal');
+        
         if (user) {
-            document.getElementById('auth-overlay').classList.add('hidden');
-            document.getElementById('main-terminal').classList.remove('hidden');
-            loadTradingView();
+            overlay.classList.add('hidden');
+            terminal.classList.remove('hidden');
+            loadWidgets();
         } else {
-            document.getElementById('auth-overlay').classList.remove('hidden');
-            document.getElementById('main-terminal').classList.add('hidden');
-        }
-    });
-
-    window.handleSignup = () => {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('password').value;
-        createUserWithEmailAndPassword(auth, e, p).catch(err => {
-            console.error(err);
-            document.getElementById('auth-error').innerText = "System Error: Contact Support";
-        });
-    };
-
-    window.handleLogin = () => {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('password').value;
-        signInWithEmailAndPassword(auth, e, p).catch(err => {
-            document.getElementById('auth-error').innerText = "Invalid Email or Password";
-        });
-    };
-
-    window.handleLogout = () => signOut(auth);
-
-    function loadTradingView() {
-        const script = document.createElement('script');
-        script.src = "https://s3.tradingview.com/tv.js";
-        script.onload = () => {
-            new TradingView.widget({ "autosize": true, "symbol": "FX:EURUSD", "theme": "dark", "container_id": "main_chart" });
-            renderWidget("gauge_widget", "embed-widget-technical-analysis.js", {"symbol": "FX:EURUSD"});
-            renderWidget("cal_widget", "embed-widget-events.js", {});
-        };
-        document.head.appendChild(script);
-    }
-
-    function renderWidget(id, scriptName, config) {
-        const container = document.getElementById(id);
-        const s = document.createElement('script');
-        s.src = `https://s3.tradingview.com/external-embedding/${scriptName}`;
-        s.async = true;
-        s.innerHTML = JSON.stringify({...config, "colorTheme": "dark", "width": "100%", "height": "100%"});
-        container.appendChild(s);
-    }
-</script>
-</body>
-</html>
+            overlay.classList.remove('hidden');
+            terminal.classList.add('hidden');
