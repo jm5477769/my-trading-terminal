@@ -3,126 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaPro | Market Terminal</title>
+    <title>AlphaPro | Secure Terminal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0b0e14; --card: #1e222d; --border: #363c4e; --text: #ffffff; --blue: #2962ff; --green: #00ff88; --red: #ff3b30; }
-        [data-theme="light"] { --bg: #f0f2f6; --card: #ffffff; --border: #d1d4dc; --text: #131722; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: 0.3s; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* LOGIN SCREEN STYLES */
+        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        .auth-card { background: var(--card); padding: 40px; border-radius: 12px; border: 1px solid var(--border); width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .auth-card h2 { color: var(--blue); margin-bottom: 20px; font-weight: 800; }
+        .auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white; box-sizing: border-box; }
+        .btn-primary { width: 100%; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+        .btn-secondary { width: 100%; padding: 10px; background: none; color: var(--green); border: 1px solid var(--green); border-radius: 6px; cursor: pointer; font-size: 13px; }
+        
+        /* TERMINAL STYLES */
+        .hidden { display: none !important; }
         header { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
         .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; }
-        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 300px; overflow-y: auto; }
+        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
         .chart-wrapper { flex: 3; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
-        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 5px; }
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
         h3 { font-size: 10px; color: #787b86; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
-        input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; margin: 5px 0; border-radius: 4px; }
-        #clock { font-family: monospace; font-weight: bold; color: var(--blue); }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="display:flex; gap:15px; align-items:center;">
-        <span style="font-weight:800; color:var(--blue)">ALPHAPRO LIVE</span>
-        <select id="pairSelector" onchange="updateDashboard()" style="background:var(--bg); color:var(--text); border:1px solid var(--border); padding:5px; border-radius:4px;">
-            <option value="FX:EURUSD">EUR/USD</option>
-            <option value="FX:GBPUSD">GBP/USD</option>
-            <option value="OANDA:XAUUSD">GOLD</option>
-            <option value="BINANCE:BTCUSDT">BITCOIN</option>
-        </select>
-        <button onclick="toggleTheme()" style="background:none; border:1px solid var(--border); color:var(--text); cursor:pointer; padding:5px 10px; border-radius:4px;">🌓 Theme</button>
-    </div>
-    <div id="clock">00:00:00 UTC</div>
-</header>
-
-<div class="main-container">
-    <div class="sidebar">
-        <div class="panel">
-            <h3>Risk Manager</h3>
-            <label style="font-size:10px;">BALANCE ($)</label>
-            <input type="number" id="balance" value="10000" oninput="calc()">
-            <div id="riskResult" style="font-weight:bold; color:var(--green); font-size:12px;">Risk Limit (1%): $100.00</div>
-        </div>
-
-        <div class="panel" style="height: 250px;">
-            <h3>Market Sentiment</h3>
-            <div id="signal_widget" style="height:100%;"></div>
-        </div>
-
-        <div class="panel" style="height: 400px;">
-            <h3>Economic Calendar</h3>
-            <div id="calendar_widget" style="height:100%;"></div>
-        </div>
-    </div>
-
-    <div class="chart-wrapper" id="main_chart"></div>
-
-    <div class="sidebar">
-        <div class="panel" style="height: 100%;">
-            <h3>Live Market News</h3>
-            <div id="news_widget" style="height:95%;"></div>
-        </div>
+<div id="auth-overlay">
+    <div class="auth-card">
+        <h2>AlphaPro</h2>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn-primary" onclick="handleLogin()">Sign In</button>
+        <button class="btn-secondary" onclick="handleSignup()">Create New Account</button>
+        <p id="auth-error" style="color: var(--red); font-size: 12px; margin-top: 10px;"></p>
     </div>
 </div>
 
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-<script>
-    function toggleTheme() {
-        const root = document.documentElement;
-        const newTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateDashboard();
-    }
+<div id="main-terminal" class="hidden" style="display: flex; flex-direction: column; height: 100vh;">
+    <header>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <span style="font-weight:800; color:var(--blue)">ALPHAPRO LIVE</span>
+        </div>
+        <button onclick="handleLogout()" style="background:var(--red); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:12px;">Logout</button>
+    </header>
 
-    function updateDashboard() {
-        const symbol = document.getElementById('pairSelector').value;
-        const theme = document.documentElement.getAttribute('data-theme');
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="panel" style="height: 250px;">
+                <h3>Market Sentiment</h3>
+                <div id="gauge_widget" style="height:100%;"></div>
+            </div>
+            <div class="panel" style="flex:1;">
+                <h3>Economic Calendar</h3>
+                <div id="cal_widget" style="height:100%;"></div>
+            </div>
+        </div>
+        <div class="chart-wrapper" id="main_chart"></div>
+    </div>
+</div>
 
-        // Main Chart
-        new TradingView.widget({
-            "autosize": true, "symbol": symbol, "interval": "H1", "theme": theme,
-            "style": "1", "container_id": "main_chart", "hide_side_toolbar": false, "allow_symbol_change": true,
-            "calendar": true, "show_popup_button": true, "trading_customization": { "position_view": "all" }
-        });
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Technical Gauge
-        updateWidget("signal_widget", "embed-widget-technical-analysis.js", {
-            "interval": "1h", "width": "100%", "height": "100%", "symbol": symbol, "showIntervalTabs": true, "colorTheme": theme, "isTransparent": true
-        });
-
-        // Economic Calendar
-        updateWidget("calendar_widget", "embed-widget-events.js", {
-            "colorTheme": theme, "isTransparent": true, "width": "100%", "height": "100%", "locale": "en", "importanceFilter": "-1,0,1"
-        });
-
-        // News Feed
-        updateWidget("news_widget", "embed-widget-timeline.js", {
-            "feedMode": "symbol", "symbol": symbol, "colorTheme": theme, "isTransparent": true, "width": "100%", "height": "100%"
-        });
-    }
-
-    function updateWidget(id, scriptName, config) {
-        const container = document.getElementById(id);
-        container.innerHTML = "";
-        const s = document.createElement('script');
-        s.src = `https://s3.tradingview.com/external-embedding/${scriptName}`;
-        s.async = true;
-        s.innerHTML = JSON.stringify(config);
-        container.appendChild(s);
-    }
-
-    function calc() {
-        const val = document.getElementById('balance').value;
-        document.getElementById('riskResult').innerText = `Risk Limit (1%): $${(val * 0.01).toFixed(2)}`;
-    }
-
-    window.onload = () => {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateDashboard();
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toUTCString().substring(17, 25) + " UTC"; }, 1000);
+    // Your specific keys from image_0b4479.jpg
+    const firebaseConfig = {
+        apiKey: "AIzaSyBumFQ72F8TAsGowOfnzNeUMA336bYBDjU",
+        authDomain: "alphapro-auth.firebaseapp.com",
+        projectId: "alphapro-auth",
+        storageBucket: "alphapro-auth.firebasestorage.app",
+        messagingSenderId: "161375056263",
+        appId: "1:161375056263:web:1f9cd16ceb561bf630e322",
+        measurementId: "G-LKZLQPG4BQ"
     };
-</script>
-</body>
-</html>
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // AUTH LOGIC
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('main-terminal').classList.remove('hidden');
+            loadTradingView();
+        } else
