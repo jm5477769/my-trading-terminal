@@ -3,32 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaForex | Demo Practice Station</title>
+    <title>AlphaPro | Market Terminal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0b0e14; --card: #1e222d; --border: #363c4e;
-            --text: #ffffff; --blue: #2962ff; --green: #00ff88; --red: #ff3b30;
-        }
-        [data-theme="light"] {
-            --bg: #f0f2f6; --card: #ffffff; --border: #d1d4dc; --text: #131722;
-        }
-        body { 
-            font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); 
-            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
-        }
-        header { 
-            background: var(--card); border-bottom: 1px solid var(--border); 
-            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; 
-        }
+        :root { --bg: #0b0e14; --card: #1e222d; --border: #363c4e; --text: #ffffff; --blue: #2962ff; --green: #00ff88; --red: #ff3b30; }
+        [data-theme="light"] { --bg: #f0f2f6; --card: #ffffff; --border: #d1d4dc; --text: #131722; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: 0.3s; }
+        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
         .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; }
-        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
+        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 300px; overflow-y: auto; }
         .chart-wrapper { flex: 3; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
-        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-blue { background: var(--blue); color: white; }
-        input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; margin-top: 5px; border-radius: 4px; box-sizing: border-box; }
-        h3 { font-size: 11px; color: #787b86; text-transform: uppercase; margin: 0; }
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 5px; }
+        h3 { font-size: 10px; color: #787b86; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; margin: 5px 0; border-radius: 4px; }
         #clock { font-family: monospace; font-weight: bold; color: var(--blue); }
     </style>
 </head>
@@ -36,14 +23,14 @@
 
 <header>
     <div style="display:flex; gap:15px; align-items:center;">
-        <span style="font-weight:800; color:var(--blue)">ALPHA DEMO STATION</span>
+        <span style="font-weight:800; color:var(--blue)">ALPHAPRO LIVE</span>
         <select id="pairSelector" onchange="updateDashboard()" style="background:var(--bg); color:var(--text); border:1px solid var(--border); padding:5px; border-radius:4px;">
             <option value="FX:EURUSD">EUR/USD</option>
             <option value="FX:GBPUSD">GBP/USD</option>
-            <option value="FX:USDJPY">USD/JPY</option>
             <option value="OANDA:XAUUSD">GOLD</option>
+            <option value="BINANCE:BTCUSDT">BITCOIN</option>
         </select>
-        <button onclick="toggleTheme()" style="background:none; border:1px solid var(--border); color:var(--text); cursor:pointer; border-radius:4px; padding:5px;">🌓 Theme</button>
+        <button onclick="toggleTheme()" style="background:none; border:1px solid var(--border); color:var(--text); cursor:pointer; padding:5px 10px; border-radius:4px;">🌓 Theme</button>
     </div>
     <div id="clock">00:00:00 UTC</div>
 </header>
@@ -51,34 +38,29 @@
 <div class="main-container">
     <div class="sidebar">
         <div class="panel">
-            <h3>1. Risk Management</h3>
-            <label style="font-size:10px;">DEMO BALANCE ($)</label>
-            <input type="number" id="balance" value="10000">
-            <label style="font-size:10px; margin-top:10px; display:block;">RISK PER TRADE (%)</label>
-            <input type="number" id="riskPer" value="1">
-            <div id="riskResult" style="margin-top:10px; font-weight:bold; color:var(--green);">Stop Loss Limit: $100.00</div>
+            <h3>Risk Manager</h3>
+            <label style="font-size:10px;">BALANCE ($)</label>
+            <input type="number" id="balance" value="10000" oninput="calc()">
+            <div id="riskResult" style="font-weight:bold; color:var(--green); font-size:12px;">Risk Limit (1%): $100.00</div>
         </div>
 
-        <div class="panel" style="flex:1;">
-            <h3>2. Confirmation Signal</h3>
-            <div id="signal_widget" style="height:90%;"></div>
+        <div class="panel" style="height: 250px;">
+            <h3>Market Sentiment</h3>
+            <div id="signal_widget" style="height:100%;"></div>
+        </div>
+
+        <div class="panel" style="height: 400px;">
+            <h3>Economic Calendar</h3>
+            <div id="calendar_widget" style="height:100%;"></div>
         </div>
     </div>
 
     <div class="chart-wrapper" id="main_chart"></div>
 
     <div class="sidebar">
-        <div class="panel">
-            <h3>3. Demo Instructions</h3>
-            <p style="font-size:12px; line-height:1.5;">
-                1. Look at the chart bottom tab: <b>"Trading Panel"</b>.<br>
-                2. Select <b>"Paper Trading"</b> (No sign-up needed) or your <b>Broker Demo</b>.<br>
-                3. Place trades using the Buy/Sell buttons that appear on the chart.
-            </p>
-        </div>
-        <div class="panel" style="flex:1;">
-            <h3>4. Market Context</h3>
-            <div id="news_widget" style="height:90%;"></div>
+        <div class="panel" style="height: 100%;">
+            <h3>Live Market News</h3>
+            <div id="news_widget" style="height:95%;"></div>
         </div>
     </div>
 </div>
@@ -86,8 +68,10 @@
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script>
     function toggleTheme() {
-        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
+        const root = document.documentElement;
+        const newTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
         updateDashboard();
     }
 
@@ -95,55 +79,50 @@
         const symbol = document.getElementById('pairSelector').value;
         const theme = document.documentElement.getAttribute('data-theme');
 
-        // Main Chart with Trading Panel Enabled
+        // Main Chart
         new TradingView.widget({
-            "autosize": true,
-            "symbol": symbol,
-            "interval": "H1",
-            "theme": theme,
-            "style": "1",
-            "container_id": "main_chart",
-            "allow_symbol_change": true,
-            "enable_publishing": false,
-            "hide_side_toolbar": false,
-            "details": true,
-            "hotlist": true,
-            "calendar": true,
-            "show_popup_button": true,
-            "popup_width": "1000",
-            "popup_height": "650",
-            // THIS LINE ENABLES THE DEMO TRADING PANEL
-            "trading_customization": { "position_view": "all" }
+            "autosize": true, "symbol": symbol, "interval": "H1", "theme": theme,
+            "style": "1", "container_id": "main_chart", "hide_side_toolbar": false, "allow_symbol_change": true,
+            "calendar": true, "show_popup_button": true, "trading_customization": { "position_view": "all" }
         });
 
-        // Update Gauge
-        const sig = document.getElementById('signal_widget');
-        sig.innerHTML = "";
+        // Technical Gauge
+        updateWidget("signal_widget", "embed-widget-technical-analysis.js", {
+            "interval": "1h", "width": "100%", "height": "100%", "symbol": symbol, "showIntervalTabs": true, "colorTheme": theme, "isTransparent": true
+        });
+
+        // Economic Calendar
+        updateWidget("calendar_widget", "embed-widget-events.js", {
+            "colorTheme": theme, "isTransparent": true, "width": "100%", "height": "100%", "locale": "en", "importanceFilter": "-1,0,1"
+        });
+
+        // News Feed
+        updateWidget("news_widget", "embed-widget-timeline.js", {
+            "feedMode": "symbol", "symbol": symbol, "colorTheme": theme, "isTransparent": true, "width": "100%", "height": "100%"
+        });
+    }
+
+    function updateWidget(id, scriptName, config) {
+        const container = document.getElementById(id);
+        container.innerHTML = "";
         const s = document.createElement('script');
-        s.src = "https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js";
+        s.src = `https://s3.tradingview.com/external-embedding/${scriptName}`;
         s.async = true;
-        s.innerHTML = JSON.stringify({"interval": "1h", "width": "100%", "height": "100%", "symbol": symbol, "showIntervalTabs": true, "colorTheme": theme, "isTransparent": true});
-        sig.appendChild(s);
-
-        // Update News
-        const news = document.getElementById('news_widget');
-        news.innerHTML = "";
-        const n = document.createElement('script');
-        n.src = "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
-        n.async = true;
-        n.innerHTML = JSON.stringify({"feedMode": "symbol", "symbol": symbol, "colorTheme": theme, "isTransparent": true, "width": "100%", "height": "100%"});
-        news.appendChild(n);
+        s.innerHTML = JSON.stringify(config);
+        container.appendChild(s);
     }
 
-    // Risk Calc Logic
-    document.getElementById('balance').addEventListener('input', calc);
-    document.getElementById('riskPer').addEventListener('input', calc);
     function calc() {
-        const res = (document.getElementById('balance').value * (document.getElementById('riskPer').value / 100)).toFixed(2);
-        document.getElementById('riskResult').innerText = `Stop Loss Limit: $${res}`;
+        const val = document.getElementById('balance').value;
+        document.getElementById('riskResult').innerText = `Risk Limit (1%): $${(val * 0.01).toFixed(2)}`;
     }
 
-    window.onload = () => { updateDashboard(); setInterval(() => { document.getElementById('clock').innerText = new Date().toUTCString().substring(17, 25) + " UTC"; }, 1000); };
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateDashboard();
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toUTCString().substring(17, 25) + " UTC"; }, 1000);
+    };
 </script>
 </body>
 </html>
